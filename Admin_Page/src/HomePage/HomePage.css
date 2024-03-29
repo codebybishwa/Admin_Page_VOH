@@ -1,0 +1,12 @@
+.transition-height {
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.open {
+  max-height: 500px; /* Adjust as needed */
+}
+
+.closed {
+  max-height: 0;
+}
