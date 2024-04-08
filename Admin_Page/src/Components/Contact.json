@@ -1,0 +1,33 @@
+[
+    {
+      "name": "John Doe",
+      "phone": "+1234567890",
+      "email": "john.doe@example.com",
+      "message": "Hello, I have a question."
+    },
+    {
+      "name": "Alice Smith",
+      "phone": "+1987654321",
+      "email": "alice.smith@example.com",
+      "message": "Hi, can you provide more information?"
+    },
+    {
+      "name": "Michael Johnson",
+      "phone": "+1122334455",
+      "email": "michael.johnson@example.com",
+      "message": "Good day! I'd like to inquire about your services."
+    },
+    {
+      "name": "Emily Brown",
+      "phone": "+1555666777",
+      "email": "emily.brown@example.com",
+      "message": "Hello, I'm interested in your products."
+    },
+    {
+      "name": "David Wilson",
+      "phone": "+1444777888",
+      "email": "david.wilson@example.com",
+      "message": "Hi, I have a support issue that needs to be resolved."
+    }
+  ]
+  

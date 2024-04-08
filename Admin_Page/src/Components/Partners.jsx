@@ -1,75 +1,189 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-const SectionContentPartners = ({ data: initialData, onDataChange: onUpdate }) => {
-  const [formData, setFormData] = useState(initialData);
+const Partners = () => {
+  const [partners, setPartners] = useState([]);
+  const [newPartner, setNewPartner] = useState({
+    heading: '',
+    description: '',
+    logo: '',
+    link: ''
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editPartner, setEditPartner] = useState({
+    _id: '',
+    heading: '',
+    description: '',
+    logo: '',
+    link: ''
+  });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value
-    }));
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get('https://api.nextedge.health/api/v1/incubator/partner');
+      if (response.data && response.data.data) {
+        setPartners(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
   };
 
-  const handleSave = () => {
-    onUpdate(formData); 
+  const handleAddPartner = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.post('https://api.nextedge.health/api/v1/incubator/partner', newPartner);
+      setPartners([...partners, response.data]);
+      console.log('Partner added successfully:', response.data);
+      setNewPartner({
+        heading: '',
+        description: '',
+        logo: '',
+        link: ''
+      });
+    } catch (error) {
+      console.error('Error adding partner:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEditPartner = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.put(`https://api.nextedge.health/api/v1/incubator/partner?id=${editPartner._id}`, editPartner);
+      if (response.status === 200) {
+        const updatedPartners = partners.map(partner =>
+          partner._id === editPartner._id ? response.data : partner
+        );
+        setPartners(updatedPartners);
+        console.log(`Partner with ID ${editPartner._id} updated successfully.`);
+        setEditMode(false);
+        setEditPartner({
+          _id: '',
+          heading: '',
+          description: '',
+          logo: '',
+          link: ''
+        });
+      }
+    } catch (error) {
+      console.error('Error updating partner:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (editMode) {
+      setEditPartner(prevState => ({
+        ...prevState,
+        [name]: value
+      }));
+    } else {
+      setNewPartner(prevState => ({
+        ...prevState,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleEditClick = (partner) => {
+    setEditMode(true);
+    setEditPartner(partner);
+  };
+
+  const renderForm = () => {
+    const partnerData = editMode ? editPartner : newPartner;
+    const buttonText = editMode ? 'Save Changes' : 'Add Partner';
+
+    return (
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Heading"
+          name="heading"
+          value={partnerData.heading}
+          onChange={handleInputChange}
+          className="px-4 py-2 mr-2 border rounded"
+        />
+        <input
+          type="text"
+          placeholder="Description"
+          name="description"
+          value={partnerData.description}
+          onChange={handleInputChange}
+          className="px-4 py-2 mr-2 border rounded"
+        />
+        <input
+          type="text"
+          placeholder="Logo URL"
+          name="logo"
+          value={partnerData.logo}
+          onChange={handleInputChange}
+          className="px-4 py-2 mr-2 border rounded"
+        />
+        <input
+          type="text"
+          placeholder="Link"
+          name="link"
+          value={partnerData.link}
+          onChange={handleInputChange}
+          className="px-4 py-2 mr-2 border rounded"
+        />
+        <button
+          onClick={editMode ? handleEditPartner : handleAddPartner}
+          className="bg-green-500 text-white px-4 py-2 rounded"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Processing...' : buttonText}
+        </button>
+        {editMode && (
+          <button
+            onClick={() => setEditMode(false)}
+            className="bg-gray-500 text-white px-4 py-2 rounded ml-2"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
+    );
   };
 
   return (
-    <div className="p-6 bg-white shadow-md rounded-md">
-      <div className="mb-4">
-        <label className="block text-[#3ea2d2] font-bold mb-2" htmlFor="heading">Heading</label>
-        <input 
-          className="border border-gray-400 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:border-blue-400"
-          type="text"
-          name="heading"
-          value={formData.heading}
-          onChange={handleChange}
-          placeholder="Heading"
-        />
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-4">Partner List</h1>
+
+      {/* Add/Edit Partner Form */}
+      {renderForm()}
+
+      {/* Partner List */}
+      <div className="grid grid-cols-3 gap-4">
+        {partners.map(partner => (
+          <div key={partner._id} className="border p-4 rounded">
+            <h2 className="text-xl font-semibold mb-2">{partner.heading}</h2>
+            <p>ID: {partner._id}</p>
+            <p>Description: {partner.description}</p>
+            <p>Link: {partner.link}</p>
+            <div className="flex mt-4">
+              <button
+                onClick={() => handleEditClick(partner)}
+                className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+              >
+                Edit
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
-      <div className="mb-4">
-        <label className="block text-[#3ea2d2] font-bold mb-2" htmlFor="description">Description</label>
-        <textarea 
-          className="border border-gray-400 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:border-blue-400"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="Description"
-        />
-      </div>
-      <div className="flex mb-4">
-        <div className="w-1/2 mr-2">
-          <label className="block text-[#3ea2d2] font-bold mb-2" htmlFor="logo">Logo URL</label>
-          <input 
-            className="border border-gray-400 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:border-blue-400"
-            type="text"
-            name="logo"
-            value={formData.logo}
-            onChange={handleChange}
-            placeholder="Logo URL"
-          />
-        </div>
-        <div className="w-1/2 ml-2">
-          <label className="block text-[#3ea2d2] font-bold mb-2" htmlFor="link">Link</label>
-          <input 
-            className="border border-gray-400 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:border-blue-400"
-            type="text"
-            name="link"
-            value={formData.link}
-            onChange={handleChange}
-            placeholder="Link"
-          />
-        </div>
-      </div>
-      <button 
-        className="bg-[#3ea2d2] hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-        onClick={handleSave}
-      >
-        Save
-      </button>
     </div>
   );
 };
 
-export default SectionContentPartners;
+export default Partners;
